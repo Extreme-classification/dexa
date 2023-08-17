@@ -351,6 +351,18 @@ class SModelIS(ModelIS):
         self.save_checkpoint(self.model_dir, epoch+1)
         self.tracking.save(os.path.join(self.result_dir, 'training_statistics.pkl'))
 
+    def setup_auxiliary_network(self, train_data_loader):
+        self.logger.info("Setting up axuliary network")
+        self.net.eval()
+        torch.set_grad_enabled(False)
+        self.logger.info("Getting label embeddings from pre-trained encoder")
+        lbl_embeddings = self.get_embeddings(
+            data=train_data_loader.dataset.label_features.data,
+            encoder=self.net.encode_document, # initial aux network may be crap
+            batch_size=train_data_loader.batch_sampler.batch_size,
+            **train_data_loader.dataset.label_features._params
+            )
+
     def fit(
         self,
         data_dir,
@@ -471,6 +483,7 @@ class SModelIS(ModelIS):
             sampling_type=sampling_params.type,
             num_workers=num_workers,
             shuffle=shuffle)
+        self.setup_auxiliary_network(train_loader)
         if sampling_params.asynchronous:
             self.memory_bank = np.zeros(
                 (len(train_dataset), self.net.representation_dims),

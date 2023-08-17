@@ -14,10 +14,11 @@ class AuxLayer(torch.nn.Module):
             torch.Tensor(output_size, input_size))
         self.device = device
         if mapping is not None:
-            self.mapping = torch.arange(output_size, dtype=torch.int64)
-            # self.mapping = torch.LongTensor(mapping)
+            self.mapping = torch.LongTensor(mapping)
         else:
-            self.mapping = None
+            #fail-safe
+            self.mapping = torch.arange(output_size, dtype=torch.int64)
+            # self.mapping = None
         self.initialize()
 
     def set_mapping(self, mapping):
