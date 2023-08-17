@@ -1,9 +1,10 @@
-import numpy as np
-import pickle
 import os
+import pickle
+import numpy as np
 import numba as nb
 from xclib.utils.shortlist import Shortlist
 from xclib.utils.clustering import cluster_balance, b_kmeans_dense
+from xclib.utils.sparse import normalize
 
 
 def construct_shortlister(args):
@@ -204,7 +205,7 @@ class ClusteringIndex(object):
         assert self.num_instances == len(X)
         _nc = self.num_clusters if num_clusters is None else num_clusters
         self.index, _ = cluster_balance(
-            X=X.astype('float32'), 
+            X=normalize(X.astype('float32'), copy=True),
             clusters=[np.arange(len(X), dtype='int')],
             num_clusters=_nc,
             splitter=b_kmeans_dense,

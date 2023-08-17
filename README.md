@@ -1,4 +1,4 @@
-# NGAME
+# DEXA
 
 Code for _DEXA: Deep Encoders with Auxiliary Parameters for Extreme Classification_ [1]
 
@@ -46,10 +46,10 @@ Extract and tokenize data as follows.
 ./prepare_data.sh LF-AmazonTitles-131K 32
 ```
 
-The algorithm can be run as follows. A json file (e.g., config/NGAME/LF-AmazonTitles-131K.json) is used to specify architecture and other arguments. Please refer to the full documentation below for more details.
+The algorithm can be run as follows. A json file (e.g., config/DEXA/LF-AmazonTitles-131K.json) is used to specify architecture and other arguments. Please refer to the full documentation below for more details.
 
 ```bash
-./run_main.sh 0 NGAME LF-AmazonTitles-131K 0 108
+./run_main.sh 0 DEXA LF-AmazonTitles-131K 0 108
 ```
 
 ## Full Documentation
