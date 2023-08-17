@@ -1,4 +1,8 @@
+import math
 import torch
+import numpy as np
+from xclib.utils.sparse import normalize
+from xclib.utils.clustering import cluster_balance, b_kmeans_dense
 
 
 class AuxLayer(torch.nn.Module):
@@ -7,6 +11,8 @@ class AuxLayer(torch.nn.Module):
     """
     def __init__(self, input_size, output_size, mapping=None, device="cpu"):
         super(AuxLayer, self).__init__()
+        assert math.log2(output_size).is_integer(), \
+            "number of aux vectos must be power of 2"
         self.padding_idx = 0
         self.input_size = input_size
         self.output_size = output_size
@@ -16,10 +22,18 @@ class AuxLayer(torch.nn.Module):
         if mapping is not None:
             self.mapping = torch.LongTensor(mapping)
         else:
-            #fail-safe
-            self.mapping = torch.arange(output_size, dtype=torch.int64)
-            # self.mapping = None
+            self.mapping = None
         self.initialize()
+
+    def cluster_and_set_mapping(self, X, num_threads=6):
+        _, mapping = cluster_balance(
+            X=normalize(X.astype('float32'), copy=True),
+            clusters=[np.arange(len(X), dtype='int')],
+            num_clusters=self.output_size,
+            splitter=b_kmeans_dense,
+            num_threads=num_threads,
+            verbose=True)
+        self.set_mapping(mapping)
 
     def set_mapping(self, mapping):
         self.mapping = torch.LongTensor(mapping)

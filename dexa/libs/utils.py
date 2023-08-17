@@ -71,8 +71,6 @@ def predict_anns(X, clf, k=100, batch_size=32, device="cuda:0", return_sparse=Tr
         n_cols=num_labels,
         nnz=k)
 
-    print(X.shape, clf.shape)    
-
     X = normalize(X)
     clf = normalize(clf)
     

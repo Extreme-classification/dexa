@@ -356,12 +356,13 @@ class SModelIS(ModelIS):
         self.net.eval()
         torch.set_grad_enabled(False)
         self.logger.info("Getting label embeddings from pre-trained encoder")
-        lbl_embeddings = self.get_embeddings(
+        embeddings = self.get_embeddings(
             data=train_data_loader.dataset.label_features.data,
             encoder=self.net.encode_document, # initial aux network may be crap
             batch_size=train_data_loader.batch_sampler.batch_size,
             **train_data_loader.dataset.label_features._params
             )
+        self.net.transform_lbl.transform.cluster_and_set_mapping(embeddings)
 
     def fit(
         self,

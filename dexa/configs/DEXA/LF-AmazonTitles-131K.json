@@ -6,6 +6,7 @@
         "arch": "STransformer",
         "A": 0.6,
         "B": 2.6,
+        "num_aux_vectors": 65536,
         "share_weights": true,
         "surrogate_method": 1,
         "max_length": 32,
