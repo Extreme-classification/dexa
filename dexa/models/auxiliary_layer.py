@@ -9,7 +9,8 @@ class AuxLayer(torch.nn.Module):
     """
 
     """
-    def __init__(self, input_size, output_size, mapping=None, device="cpu"):
+    def __init__(self, input_size, output_size,
+                 output_size_org=None, mapping=None, device="cpu"):
         super(AuxLayer, self).__init__()
         assert math.log2(output_size).is_integer(), \
             "number of aux vectos must be power of 2"
@@ -20,9 +21,9 @@ class AuxLayer(torch.nn.Module):
             torch.Tensor(output_size, input_size))
         self.device = device
         if mapping is not None:
-            self.mapping = torch.LongTensor(mapping)
+            self.register_buffer('mapping', torch.LongTensor(mapping))
         else:
-            self.mapping = None
+            self.register_buffer('mapping', torch.zeros(output_size_org).long())
         self.initialize()
 
     def cluster_and_set_mapping(self, X, num_threads=6):
@@ -36,7 +37,8 @@ class AuxLayer(torch.nn.Module):
         self.set_mapping(mapping)
 
     def set_mapping(self, mapping):
-        self.mapping = torch.LongTensor(mapping)
+        self.mapping.copy_(
+            torch.LongTensor(mapping).to(self.mapping.get_device()))
 
     def encode(self, x, ind):
         return x + self.weight[self.mapping[ind]].squeeze()
