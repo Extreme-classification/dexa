@@ -317,13 +317,18 @@ class DeepXMLIS(DeepXMLBase):
                 params.requires_grad = False
         self.transform = self._construct_transform(
             config_dict['transform_doc'])
+        self.transform_lbl = self._construct_transform(
+            config_dict['transform_lbl'])
 
     def save_intermediate_model(self, fname):
-        out = {'encoder': self.encoder.state_dict()}
+        out = {'encoder': self.encoder.state_dict(),
+               'transform_lbl': self.transform_lbl.state_dict()}
         torch.save(out, fname)
 
     def load_intermediate_model(self, fname):
-        self.encoder.load_state_dict(torch.load(fname)['encoder'])
+        m = torch.load(fname)
+        self.encoder.load_state_dict(m['encoder'])
+        self.transform_lbl.load_state_dict(m['transform_lbl'])
 
     def _encode(self, x, *args, **kwargs):
         return self.encoder.encode(_to_device(x, self.device))
@@ -342,13 +347,17 @@ class DeepXMLIS(DeepXMLBase):
         """
         return self.transform(_to_device(x, self.device))
 
-    def encode_document(self, x, ret_encoder_rep=False):
-        return self.encode(x, ret_encoder_rep)
+    def encode_document(self, x, ind=None, ret_encoder_rep=False):
+        encoding = self.encoder.encode(
+            _to_device(x, self.device))
+        return encoding if ret_encoder_rep else self.transform(encoding)
 
-    def encode_label(self, x, ret_encoder_rep=False):
-        return self.encode(x, ret_encoder_rep)
+    def encode_label(self, x, ind, ret_encoder_rep=False):
+        encoding = self.encoder.encode(
+            _to_device(x, self.device))
+        return encoding if ret_encoder_rep else self.transform_lbl((encoding, ind))
 
-    def encode(self, x, ret_encoder_rep=False):
+    def encode(self, x, ind=None, ret_encoder_rep=False):
         #TODO: Implement stuff for non-shared arch
         """Forward pass
         * Assumes features are dense if x_ind is None

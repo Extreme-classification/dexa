@@ -364,6 +364,7 @@ class SModelIS(ModelIS):
             )
         self.net.transform_lbl.transform.cluster_and_set_mapping(embeddings)
 
+
     def fit(
         self,
         data_dir,
@@ -756,7 +757,7 @@ class XModelIS(ModelIS):
     def init_classifier(self, dataset, batch_size=128):
         lbl_embeddings = self.get_embeddings(
             data=dataset.label_features.data,
-            encoder=self.net._encode,
+            encoder=self.net.encode_label,
             batch_size=batch_size,
             **dataset.label_features._params
             )
@@ -900,13 +901,13 @@ class XModelIS(ModelIS):
             data = {}
             data['X'] = self.get_embeddings(
                 data=train_dataset.features.data,
-                encoder=self.net._encode,
+                encoder=self.net.encode,
                 batch_size=batch_size,
                 **train_dataset.features._params
             )
             data['Yf'] = self.get_embeddings(
                 data=train_dataset.label_features.data,
-                encoder=self.net._encode,
+                encoder=self.net.encode_label,
                 batch_size=batch_size,
                 **train_dataset.label_features._params)
 
