@@ -36,12 +36,13 @@ class DatasetBDIS(DatasetSampling):
                         )
 
     def construct_sampler(self, sampling_params):
-        if sampling_params is not None:
-            return ClusteringIndex(
-                num_instances=self.__len__(),
-                num_clusters=self.__len__(),
-                num_threads=sampling_params.threads,
-                curr_steps=sampling_params.curr_epochs)
+        n = sampling_params.init_cluster_size
+        depth = int(np.ceil(np.log(self.__len__() / n) / np.log(2)))
+        return ClusteringIndex(
+            num_instances=self.__len__(),
+            num_clusters=2**depth,
+            num_threads=sampling_params.threads,
+            curr_steps=sampling_params.curr_epochs)
 
     def indices_permutation(self):
         clusters = self.sampler.index
