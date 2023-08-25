@@ -248,7 +248,8 @@ class SiameseXMLIS(DeepXMLBase):
             out['encoder'] = self.encoder.state_dict()
             out['encoder_lbl'] = self.encoder_lbl.state_dict()
         else:
-            out = {'encoder': self.encoder.state_dict()}
+            out = {'encoder': self.encoder.state_dict(),
+                   'transform_lbl': self.transform_lbl.state_dict()}
         torch.save(out, fname)
 
     def load_intermediate_model(self, fname):
@@ -258,6 +259,7 @@ class SiameseXMLIS(DeepXMLBase):
             self.encoder_lbl.load_state_dict(out['encoder_lbl'])
         else:
             self.encoder.load_state_dict(out['encoder'])
+            self.transform_lbl.load_state_dict(out['transform_lbl'])
 
     def named_parameters(self, recurse=True, return_shared=False):
         if self.share_weights and not return_shared:
