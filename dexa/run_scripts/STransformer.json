@@ -27,7 +27,7 @@
         "order": ["linear_aux"],
         "linear_aux": {
             "input_size": "#ARGS.embedding_dims;",
-            "output_size": "#ARGS.num_aux_vectors;",
+            "output_size": "#ARGS.aux_num_vectors;",
             "output_size_org": "#ARGS.num_labels;"
         }
     },

@@ -36,6 +36,7 @@ def train(model, args):
         result_dir=args.result_dir,
         model_dir=args.model_dir,
         sampling_params=utils.filter_params(args, 'sampling_'),
+        aux_params=utils.filter_params(args, 'aux_'),
         max_len=args.max_length,
         feature_type=args.feature_type,
         label_type='sparse',

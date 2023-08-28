@@ -8,7 +8,7 @@ from tqdm import tqdm
 from .model_base import ModelBase
 from .utils import get_filter_map, predict_anns
 from libs.batching import MySampler
-from xclib.utils.sparse import csr_from_arrays, normalize
+from xclib.utils.sparse import csr_from_arrays, normalize, frequency
 
 
 def construct_model(args, net, loss, optimizer, schedular, shortlister):
@@ -351,18 +351,20 @@ class SModelIS(ModelIS):
         self.save_checkpoint(self.model_dir, epoch+1)
         self.tracking.save(os.path.join(self.result_dir, 'training_statistics.pkl'))
 
-    def setup_auxiliary_network(self, train_data_loader):
+    def setup_auxiliary_network(self, train_data_loader, aux_params):
         self.logger.info("Setting up axuliary network")
         self.net.eval()
         torch.set_grad_enabled(False)
         self.logger.info("Getting label embeddings from pre-trained encoder")
+        freq = frequency(train_data_loader.dataset.labels.data)
         embeddings = self.get_embeddings(
             data=train_data_loader.dataset.label_features.data,
             encoder=self.net.encode_document, # initial aux network may be crap
             batch_size=train_data_loader.batch_sampler.batch_size,
             **train_data_loader.dataset.label_features._params
             )
-        self.net.transform_lbl.transform.cluster_and_set_mapping(embeddings)
+        self.net.transform_lbl.transform.cluster_and_set_mapping(
+            embeddings, freq, aux_params.num_hlp_vectors)
 
 
     def fit(
@@ -378,6 +380,7 @@ class SModelIS(ModelIS):
         normalize_features=True,
         normalize_labels=False,
         sampling_params=None,
+        aux_params=None,
         freeze_encoder=False,
         use_amp=True,
         num_epochs=10,
@@ -485,7 +488,7 @@ class SModelIS(ModelIS):
             sampling_type=sampling_params.type,
             num_workers=num_workers,
             shuffle=shuffle)
-        self.setup_auxiliary_network(train_loader)
+        self.setup_auxiliary_network(train_loader, aux_params)
         if sampling_params.asynchronous:
             self.memory_bank = np.zeros(
                 (len(train_dataset), self.net.representation_dims),
