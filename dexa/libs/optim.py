@@ -1,5 +1,4 @@
 import torch
-import transformers
 
 
 def construct_optimizer(params, net):
@@ -14,56 +13,19 @@ def construct_optimizer(params, net):
             {'params': [p for n, p in net.named_parameters() if 'encoder' in n and any(nd in n for nd in no_decay)], 'weight_decay': 0.0},
             {'params': net.transform_lbl.transform.weight, 'weight_decay': 0.0, 'lr': params.learning_rate}
             ]
-        # print(gp)
-        return transformers.AdamW(gp, **{'lr': params.learning_rate, 'eps': 1e-06})
-
-        # no_decay = ['bias', 'LayerNorm.weight']
-        # gp = [
-        #     {'params': [p for n, p in net.named_parameters() if 'encoder' in n and not any(nd in n for nd in no_decay)], 'weight_decay': params.weight_decay},
-        #     {'params': [p for n, p in net.named_parameters() if 'encoder' in n and any(nd in n for nd in no_decay)]},
-        #     {'params': [p for n, p in net.named_parameters() if 'encoder' not in n]}
-        #     ]
-
-        # count = 0
-        # for n, p in net.named_parameters():
-        #     if 'encoder' in n and not any(nd in n for nd in no_decay):
-        #         count += 1
-        #         print(n)
-
-        # print("Yes!!", count)
-        # count = 0
-        # for n, p in net.named_parameters():
-        #     if 'encoder' in n and any(nd in n for nd in no_decay):
-        #         count += 1
-        #         print(n)
-
-        # print("Yes!!", count)
-
-        # for n, p in net.named_parameters():
-        #     if 'encoder' not in n:
-        #         print(n)
-
-        # return torch.optim.AdamW(
-        #     gp, 
-        #     **{'lr': params.learning_rate, 'eps': 1e-06, 'weight_decay': 0.0})
-
-        #     # net.parameters(),
-        #     # lr=params.learning_rate,
-        #     # eps=1e-06,
-        #     # weight_decay=params.weight_decay)
+        return torch.optim.AdamW(
+            gp, 
+            **{'lr': params.learning_rate, 'eps': 1e-06, 'amsgrad': True})
     else:
         raise NotImplementedError("")
 
 
 def construct_schedular(params, optimizer):
-    t_total = params.num_epochs*(params.num_points/params.batch_size)
-    return transformers.get_linear_schedule_with_warmup(
-        optimizer, num_warmup_steps=100, num_training_steps=t_total)
-    # return get_linear_schedule_with_warmup(
-    #     optimizer=optimizer,
-    #     num_warmup_steps=params.warmup_steps,
-    #     num_training_steps=params.num_epochs*(
-    #         params.num_points/params.batch_size))
+    return get_linear_schedule_with_warmup(
+        optimizer=optimizer,
+        num_warmup_steps=params.warmup_steps,
+        num_training_steps=params.num_epochs*(
+            params.num_points/params.batch_size))
 
 
 def get_linear_schedule_with_warmup(optimizer, num_warmup_steps,

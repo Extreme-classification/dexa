@@ -62,60 +62,31 @@ def map_filter_mapping(mapping, valid_labels, num_labels):
     return mapping[val_ind]
 
 
-def predict_anns(X, clf, k=100, batch_size=32, device="cuda:0", return_sparse=True):
-    torch.set_grad_enabled(False)
-    num_instances, num_labels = len(X), len(clf)
-    batches = np.array_split(range(num_instances), num_instances//batch_size)
-    output = SMatrix(
-        n_rows=num_instances,
-        n_cols=num_labels,
-        nnz=k)
-
-    X = normalize(X)
-    clf = normalize(clf)
+def predict_anns(X, W, k=300, method='hnswlib', space='cosine',
+                M=100, efC=300, n_threads=6, add_padding=False):
+    """
+    Train a nearest neighbor structure on W
+    - for a given test point: query the graph for closest label
+    """
+    num_instances, num_labels = len(X), len(W)
     
-    X = torch.from_numpy(X)
-    clf = torch.from_numpy(clf).to(device).T
-    for ind in tqdm(batches):
-        s_ind, e_ind = ind[0], ind[-1] + 1
-        _X = X[s_ind: e_ind].to(device)
-        ans = _X @ clf
-        vals, ind = torch.topk(
-            ans, k=k, dim=-1, sorted=True)
-        output.update_block(
-            s_ind, ind.cpu().numpy(), vals.cpu().numpy())
-        del _X
-    if return_sparse:
-        return output.data()
-    else:
-        return output.data('dense')[0]
-
-
-# def predict_anns(X, W, k=300, method='hnswlib', space='cosine',
-#                 M=100, efC=300, n_threads=6, add_padding=False):
-#     """
-#     Train a nearest neighbor structure on W
-#     - for a given test point: query the graph for closest label
-#     """
-#     num_instances, num_labels = len(X), len(W)
+    # add a padding index in the end
+    if add_padding:
+        num_labels += 1
     
-#     # add a padding index in the end
-#     if add_padding:
-#         num_labels += 1
-    
-#     # can handle zero vectors
-#     graph = ShortlistMIPS(
-#         method=method,
-#         M=M,
-#         efC=efC,
-#         efS=k,
-#         num_neighbours=k,
-#         space=space, 
-#         num_threads=n_threads)    
-#     graph.fit(W)
-#     ind, sim = graph.query(X)
-#     pred = csr_from_arrays(ind, sim, (num_instances, num_labels))
-#     return pred
+    # can handle zero vectors
+    graph = ShortlistMIPS(
+        method=method,
+        M=M,
+        efC=efC,
+        efS=k,
+        num_neighbours=k,
+        space=space, 
+        num_threads=n_threads)    
+    graph.fit(W)
+    ind, sim = graph.query(X)
+    pred = csr_from_arrays(ind, sim, (num_instances, num_labels))
+    return pred
 
 
 def filter_params(args, prefix):

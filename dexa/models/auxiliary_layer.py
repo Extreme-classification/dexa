@@ -68,7 +68,7 @@ class AuxLayer(torch.nn.Module):
 
     def cluster_and_set_mapping(self, X, freq, num_hlpv, num_threads=6):
         if num_hlpv > 0:
-            self._cluster_and_set_mapping_hlp(self, X, freq, num_hlpv, num_threads)
+            self._cluster_and_set_mapping_hlp(X, freq, num_hlpv, num_threads)
         else:
             self._cluster_and_set_mapping_vanilla(X, num_threads)
 
