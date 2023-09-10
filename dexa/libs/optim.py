@@ -1,4 +1,5 @@
 import torch
+import transformers
 
 
 def construct_optimizer(params, net):
@@ -13,9 +14,10 @@ def construct_optimizer(params, net):
             {'params': [p for n, p in net.named_parameters() if 'encoder' in n and any(nd in n for nd in no_decay)], 'weight_decay': 0.0},
             {'params': net.transform_lbl.transform.weight, 'weight_decay': 0.0, 'lr': params.learning_rate}
             ]
-        return torch.optim.AdamW(
-            gp, 
-            **{'lr': params.learning_rate, 'eps': 1e-06, 'amsgrad': True})
+        return transformers.AdamW(gp, **{'lr': params.learning_rate, 'eps': 1e-06})
+        # return torch.optim.AdamW(
+        #     gp, 
+        #     **{'lr': params.learning_rate, 'eps': 1e-06, 'amsgrad': True})
     else:
         raise NotImplementedError("")
 

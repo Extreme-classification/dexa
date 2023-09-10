@@ -29,7 +29,7 @@ class AuxLayer(torch.nn.Module):
             "number of aux vectos must be power of 2"
 
     def _cluster_and_set_mapping_vanilla(self, X, num_threads=6):
-        self._power_two_check(len(X))
+        self._power_two_check(self.output_size)
         _, mapping = cluster_balance(
             X=normalize(X.astype('float32'), copy=True),
             clusters=[np.arange(len(X), dtype='int')],
